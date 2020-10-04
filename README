@@ -1,0 +1,37 @@
+This README file contains information on the contents of the meta-kvmd layer.
+
+Please see the corresponding sections below for details.
+
+Dependencies
+============
+
+  URI: https://gitlab.com/dimtass/meta-allwinner-hx
+  branch: master (e2195f710533ada7b4b502b5868f7c3ee9cb81b2)
+
+  URI: meta-openembedded
+  branch: dunfell
+    meta-oe
+    meta-python
+    meta-networking
+    meta-filesystems
+    meta-webserver
+
+  URI: poky
+  branch: dunfell
+
+Table of Contents
+=================
+
+  I. Adding the meta-kvmd layer to your build
+ II. Misc
+
+
+I. Adding the meta-kvmd layer to your build
+=================================================
+
+Run 'bitbake-layers add-layer meta-kvmd'
+
+II. Misc
+========
+
+--- replace with specific information about the meta-kvmd layer ---

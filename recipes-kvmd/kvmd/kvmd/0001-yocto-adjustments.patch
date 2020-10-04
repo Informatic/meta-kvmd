@@ -1,0 +1,150 @@
+From 050f7e87fcde246e5bda5901e14c47de25a6e7ae Mon Sep 17 00:00:00 2001
+From: Piotr Dobrowolski <informatic@hackerspace.pl>
+Date: Tue, 29 Sep 2020 16:50:52 +0000
+Subject: [PATCH] yocto adjustments
+
+---
+ configs/kvmd/main/v2-hdmiusb-rpi4.yaml | 17 ++++++++++++-----
+ configs/os/services/kvmd-nginx.service |  4 ++--
+ kvmd/aioproc.py                        |  4 +---
+ kvmd/apps/kvmd/info/extras.py          |  4 ++--
+ kvmd/apps/kvmd/logreader.py            |  3 ++-
+ kvmd/keyboard/keysym.py                |  3 ++-
+ 6 files changed, 21 insertions(+), 14 deletions(-)
+
+diff --git a/configs/kvmd/main/v2-hdmiusb-rpi4.yaml b/configs/kvmd/main/v2-hdmiusb-rpi4.yaml
+index 5927ac7..6b8a80d 100644
+--- a/configs/kvmd/main/v2-hdmiusb-rpi4.yaml
++++ b/configs/kvmd/main/v2-hdmiusb-rpi4.yaml
+@@ -15,12 +15,12 @@ kvmd:
+     hid:
+         type: otg
+         keyboard:
+-            device: /dev/kvmd-hid-keyboard
++            device: /dev/hidg0
+         mouse:
+-            device: /dev/kvmd-hid-mouse
++            device: /dev/hidg1
+ 
+     atx:
+-        type: gpio
++        type: disabled
+         power_led_pin: 24
+         hdd_led_pin: 22
+         power_switch_pin: 23
+@@ -28,6 +28,14 @@ kvmd:
+ 
+     msd:
+         type: otg
++        remount_cmd:
++          - /bin/true
++        unlock_cmd:
++          - /bin/true
++
++    info:
++        hw:
++            vcgencmd_cmd: /bin/true
+ 
+     streamer:
+         quality: 0
+@@ -47,7 +55,7 @@ kvmd:
+         unix: /run/kvmd/ustreamer.sock
+         cmd:
+             - "/usr/bin/ustreamer"
+-            - "--device=/dev/kvmd-video"
++            - "--device=/dev/video0"
+             - "--persistent"
+             - "--format=jpeg"
+             - "--resolution={resolution}"
+@@ -61,7 +69,6 @@ kvmd:
+             - "--process-name-prefix={process_name_prefix}"
+             - "--notify-parent"
+             - "--no-log-colors"
+-
+ ipmi:
+     kvmd:
+         unix: /run/kvmd/kvmd.sock
+diff --git a/configs/os/services/kvmd-nginx.service b/configs/os/services/kvmd-nginx.service
+index 2cfa151..3f62324 100644
+--- a/configs/os/services/kvmd-nginx.service
++++ b/configs/os/services/kvmd-nginx.service
+@@ -8,8 +8,8 @@ PIDFile=/run/kvmd/nginx.pid
+ PrivateDevices=yes
+ SyslogLevel=err
+ 
+-ExecStart=/usr/bin/nginx -p /etc/kvmd/nginx -c /etc/kvmd/nginx/nginx.conf -g 'pid /run/kvmd/nginx.pid; user kvmd-nginx; error_log stderr;'
+-ExecReload=/usr/bin/nginx -s reload -p /etc/kvmd/nginx -c /etc/kvmd/nginx/nginx.conf
++ExecStart=/usr/sbin/nginx -p /etc/kvmd/nginx -c /etc/kvmd/nginx/nginx.conf -g 'pid /run/kvmd/nginx.pid; user kvmd-nginx; error_log stderr;'
++ExecReload=/usr/sbin/nginx -s reload -p /etc/kvmd/nginx -c /etc/kvmd/nginx/nginx.conf
+ KillSignal=SIGQUIT
+ KillMode=mixed
+ TimeoutStopSec=3
+diff --git a/kvmd/aioproc.py b/kvmd/aioproc.py
+index 4c503bc..770a31b 100644
+--- a/kvmd/aioproc.py
++++ b/kvmd/aioproc.py
+@@ -27,8 +27,6 @@ import signal
+ from typing import Tuple
+ from typing import List
+ 
+-import setproctitle
+-
+ 
+ # =====
+ async def run_process(cmd: List[str], err_to_null: bool=False) -> asyncio.subprocess.Process:  # pylint: disable=no-member
+@@ -51,4 +49,4 @@ def ignore_sigint() -> None:
+ 
+ 
+ def rename_process(suffix: str, prefix: str="kvmd") -> None:
+-    setproctitle.setproctitle(f"{prefix}/{suffix}: {setproctitle.getproctitle()}")
++    pass
+diff --git a/kvmd/apps/kvmd/info/extras.py b/kvmd/apps/kvmd/info/extras.py
+index 6097d6a..427e69e 100644
+--- a/kvmd/apps/kvmd/info/extras.py
++++ b/kvmd/apps/kvmd/info/extras.py
+@@ -26,8 +26,8 @@ import contextlib
+ from typing import Dict
+ from typing import Optional
+ 
+-import dbus  # pylint: disable=import-error
+-import dbus.exceptions
++#import dbus  # pylint: disable=import-error
++#import dbus.exceptions
+ 
+ from ....logging import get_logger
+ 
+diff --git a/kvmd/apps/kvmd/logreader.py b/kvmd/apps/kvmd/logreader.py
+index db5f44b..0f5b684 100644
+--- a/kvmd/apps/kvmd/logreader.py
++++ b/kvmd/apps/kvmd/logreader.py
+@@ -27,7 +27,8 @@ import time
+ from typing import Dict
+ from typing import AsyncGenerator
+ 
+-import systemd.journal
++# FIXME
++# import systemd.journal
+ 
+ 
+ # =====
+diff --git a/kvmd/keyboard/keysym.py b/kvmd/keyboard/keysym.py
+index e3695b3..f0e5a65 100644
+--- a/kvmd/keyboard/keysym.py
++++ b/kvmd/keyboard/keysym.py
+@@ -26,7 +26,7 @@ import functools
+ 
+ from typing import Dict
+ 
+-import Xlib.keysymdef
++#import Xlib.keysymdef
+ 
+ from ..logging import get_logger
+ 
+@@ -76,6 +76,7 @@ def build_symmap(path: str) -> Dict[int, SymmapWebKey]:
+ @functools.lru_cache()
+ def _get_keysyms() -> Dict[str, int]:
+     keysyms: Dict[str, int] = {}
++    return {}
+     for (loader, module_name, _) in pkgutil.walk_packages(Xlib.keysymdef.__path__):
+         module = loader.find_module(module_name).load_module(module_name)
+         for keysym_name in dir(module):
