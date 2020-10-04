@@ -9,7 +9,7 @@ SRC_URI = "git://github.com/pikvm/kvmd.git \
            file://v2-hdmiusb-yocto.yaml \
            file://0001-yocto-adjustments.patch \
            "
-SRCREV = "ccab97a56f995e04bd504b996ee31b2b4adeddb3"
+SRCREV = "bfb54767fa41b671bc97e2709f1514c5e84b0a4c"
 S = "${WORKDIR}/git"
 
 RDEPENDS_${PN} = " \

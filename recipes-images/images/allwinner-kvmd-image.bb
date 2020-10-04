@@ -6,6 +6,8 @@ inherit allwinner-base-image
 
 IMAGE_INSTALL += " \
     kvmd \
+    v4l-utils \
+    libgpiod-tools \
     kernel-module-uvcvideo \
 "
 
